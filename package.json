@@ -1,0 +1,9 @@
+{
+  "name": "gambit",
+  "private": true,
+  "type": "module",
+  "description": "Outils de développement de Gambit (le module Foundry n'a besoin d'aucune dépendance).",
+  "scripts": {
+    "test": "node tests/chess.test.mjs"
+  }
+}

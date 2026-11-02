@@ -1,0 +1,430 @@
+/* Gambit — styles des fenêtres et des messages */
+
+.gambit {
+  --gambit-light: #ecd9b4;
+  --gambit-dark: #a9794e;
+  --gambit-frame: #4a3222;
+  --gambit-accent: #c8923a;
+  --gambit-last: rgba(222, 186, 64, 0.55);
+  --gambit-select: rgba(92, 160, 90, 0.6);
+  --gambit-target: rgba(30, 30, 30, 0.28);
+  --gambit-check: rgba(200, 40, 40, 0.8);
+  --gambit-piece-font: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "DejaVu Sans", "Arial Unicode MS", serif;
+}
+
+.gambit .gambit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.application.gambit {
+  max-height: calc(100vh - 2rem);
+}
+
+.application.gambit .window-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.gambit .hint {
+  opacity: 0.75;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+/* -------------------------------------------- */
+/*  Bouton FR / EN                              */
+/* -------------------------------------------- */
+
+.gambit .gambit-lang {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 2.2rem;
+  height: 1.6rem;
+  min-height: 0;
+  margin-left: auto;
+  margin-right: 0.25rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.gambit .gambit-lang:hover,
+.gambit .gambit-lang:focus-visible {
+  opacity: 1;
+  border-color: var(--gambit-accent);
+  color: var(--gambit-accent);
+}
+
+/* -------------------------------------------- */
+/*  La partie                                   */
+/* -------------------------------------------- */
+
+.gambit .gambit-layout {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.gambit .gambit-board-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.gambit .gambit-side {
+  flex: 0 0 13rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+/* Fenêtre étroite : le panneau passe sous le plateau */
+@container (max-width: 34rem) {
+  .gambit .gambit-layout { flex-direction: column; }
+  .gambit .gambit-side { flex-basis: auto; }
+}
+
+.application.gambit-game .window-content {
+  container-type: inline-size;
+}
+
+.gambit .gambit-board-wrap {
+  position: relative;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  background: var(--gambit-frame);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.gambit .gambit-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  aspect-ratio: 1;
+  width: 100%;
+  user-select: none;
+  touch-action: none;
+}
+
+.gambit .gambit-sq {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  line-height: 1;
+  cursor: default;
+  container-type: size;
+}
+
+.gambit .gambit-sq.light { background: var(--gambit-light); color: var(--gambit-dark); }
+.gambit .gambit-sq.dark { background: var(--gambit-dark); color: var(--gambit-light); }
+.gambit .gambit-sq:hover,
+.gambit .gambit-sq:focus-visible { box-shadow: none; outline: none; }
+.gambit .gambit-sq:focus-visible { box-shadow: inset 0 0 0 3px var(--gambit-accent); }
+
+.gambit .gambit-sq.last { background-image: linear-gradient(var(--gambit-last), var(--gambit-last)); }
+.gambit .gambit-sq.selected { background-image: linear-gradient(var(--gambit-select), var(--gambit-select)); }
+.gambit .gambit-sq.check { background-image: radial-gradient(circle, var(--gambit-check) 0%, rgba(200, 40, 40, 0) 72%); }
+
+.gambit .gambit-board.playable .gambit-sq.movable,
+.gambit .gambit-board.playable .gambit-sq.target { cursor: pointer; }
+.gambit .gambit-board.playable .gambit-sq.movable .gambit-piece { cursor: grab; }
+
+/* Cases d'arrivée : un point, ou un anneau si une pièce peut être prise */
+.gambit .gambit-sq.target::after {
+  content: "";
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: var(--gambit-target);
+  pointer-events: none;
+}
+
+.gambit .gambit-sq.target.capture::after {
+  width: 92%;
+  height: 92%;
+  background: transparent;
+  box-shadow: inset 0 0 0 0.35rem var(--gambit-target);
+}
+
+.gambit .gambit-sq.target:hover { background-image: linear-gradient(var(--gambit-select), var(--gambit-select)); }
+
+.gambit .coord {
+  position: absolute;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.gambit .coord.file { right: 0.18rem; bottom: 0.15rem; }
+.gambit .coord.rank { left: 0.18rem; top: 0.15rem; }
+
+/* Pièces : glyphes Unicode pleins, couleur et contour par le style */
+.gambit .gambit-piece {
+  position: relative;
+  z-index: 1;
+  font-family: var(--gambit-piece-font);
+  font-size: 78cqh;
+  line-height: 1;
+  pointer-events: auto;
+  transition: transform 80ms ease;
+}
+
+.gambit .gambit-piece.white {
+  color: #fffaf0;
+  -webkit-text-stroke: 0.045em #2b2118;
+  paint-order: stroke fill;
+  text-shadow: 0 0.04em 0.06em rgba(0, 0, 0, 0.35);
+}
+
+.gambit .gambit-piece.black {
+  color: #1e1915;
+  -webkit-text-stroke: 0.03em rgba(255, 244, 225, 0.85);
+  paint-order: stroke fill;
+  text-shadow: 0 0.04em 0.06em rgba(0, 0, 0, 0.35);
+}
+
+.gambit .gambit-piece.lifted { opacity: 0.25; }
+
+.gambit-ghost {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "DejaVu Sans", "Arial Unicode MS", serif;
+  line-height: 1;
+  transform: scale(1.12);
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
+}
+
+.gambit-ghost.white { color: #fffaf0; -webkit-text-stroke: 0.045em #2b2118; paint-order: stroke fill; }
+.gambit-ghost.black { color: #1e1915; -webkit-text-stroke: 0.03em rgba(255, 244, 225, 0.85); paint-order: stroke fill; }
+
+/* Joueurs au-dessus et au-dessous du plateau */
+.gambit .gambit-player {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.9rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.35rem;
+  border: 1px solid transparent;
+}
+
+.gambit .gambit-player.turn {
+  border-color: var(--gambit-accent);
+  background: rgba(200, 146, 58, 0.12);
+}
+
+.gambit .gambit-name { font-weight: 700; white-space: nowrap; }
+.gambit .gambit-you { font-weight: 400; opacity: 0.7; }
+
+.gambit .gambit-swatch {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  vertical-align: -0.1rem;
+}
+
+.gambit .gambit-swatch.white { background: #fffaf0; }
+.gambit .gambit-swatch.black { background: #1e1915; border-color: rgba(255, 255, 255, 0.5); }
+
+.gambit .gambit-captured {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.gambit .gambit-captured .gambit-piece {
+  font-size: 1.05rem;
+  margin-left: -0.15rem;
+  pointer-events: none;
+}
+
+.gambit .gambit-lead {
+  margin-left: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* Panneau latéral */
+.gambit .gambit-status {
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.35rem;
+  background: rgba(0, 0, 0, 0.08);
+  line-height: 1.35;
+}
+
+.gambit .gambit-status.over {
+  border-left: 3px solid var(--gambit-accent);
+}
+
+.gambit .gambit-check { color: #c0392b; }
+
+.gambit .gambit-offer {
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.35rem;
+  border: 1px dashed var(--gambit-accent);
+  font-style: italic;
+}
+
+.gambit .gambit-moves {
+  flex: 1 1 auto;
+  min-height: 6rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.3rem 0.4rem;
+  list-style: none;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+}
+
+.gambit .gambit-moves li {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr 1fr;
+  gap: 0.2rem;
+  padding: 0.1rem 0;
+}
+
+.gambit .gambit-moves.empty li { display: block; font-family: inherit; }
+.gambit .gambit-moves .num { opacity: 0.55; }
+.gambit .gambit-moves .san.last { font-weight: 700; color: var(--gambit-accent); }
+
+.gambit .gambit-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.gambit .gambit-buttons button { justify-content: flex-start; }
+
+/* Promotion */
+.gambit .gambit-promotion {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.gambit .gambit-promotion-box {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--gambit-light);
+  color: #2b2118;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.gambit .gambit-promotion-box p { margin: 0 0 0.5rem; font-weight: 700; }
+
+.gambit .gambit-promotion-choices {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.gambit .gambit-promotion-choices button {
+  width: 3.4rem;
+  height: 3.4rem;
+  padding: 0;
+  border-radius: 0.4rem;
+  background: var(--gambit-dark);
+  border: 2px solid transparent;
+  container-type: size;
+}
+
+.gambit .gambit-promotion-choices button:hover { border-color: var(--gambit-accent); }
+
+/* -------------------------------------------- */
+/*  Liste des parties                           */
+/* -------------------------------------------- */
+
+.gambit .gambit-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.gambit .gambit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.gambit .gambit-row.mine { border-color: var(--gambit-accent); }
+
+.gambit .gambit-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.gambit .gambit-row button { flex: 0 0 auto; width: auto; }
+
+/* -------------------------------------------- */
+/*  Nouvelle partie                             */
+/* -------------------------------------------- */
+
+.gambit .gambit-new fieldset { margin-bottom: 0.5rem; }
+.gambit .gambit-new legend { display: flex; align-items: center; gap: 0.35rem; }
+
+/* -------------------------------------------- */
+/*  Chat                                        */
+/* -------------------------------------------- */
+
+.gambit-chat h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.3rem;
+  border: none;
+}
+
+.gambit-chat p { margin: 0 0 0.4rem; }
+.gambit-chat .gambit-chat-moves { opacity: 0.7; font-size: 0.9em; }

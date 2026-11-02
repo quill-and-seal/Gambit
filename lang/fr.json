@@ -1,0 +1,101 @@
+{
+  "GAMBIT": {
+    "Controls": {
+      "Games": "Gambit — Parties de la scène",
+      "New": "Gambit — Nouvelle partie d'échecs"
+    },
+    "Settings": {
+      "Language": {
+        "Name": "Langue de Gambit",
+        "Hint": "Langue des fenêtres de Gambit, pour toi seul. Le bouton FR / EN des fenêtres change aussi ce réglage.",
+        "auto": "Comme Foundry",
+        "fr": "Français",
+        "en": "English"
+      },
+      "AutoOpen": {
+        "Name": "Ouvrir mes parties automatiquement",
+        "Hint": "Quand le MJ t'installe à une partie (ou lance une revanche), sa fenêtre s'ouvre toute seule."
+      },
+      "Announce": {
+        "Name": "Annoncer les parties dans le chat",
+        "Hint": "Un message au début et à la fin de chaque partie, avec un bouton pour l'ouvrir."
+      }
+    },
+    "Lang": {
+      "Toggle": "Changer la langue de Gambit"
+    },
+    "Seat": {
+      "GM": "MJ / PNJ"
+    },
+    "Piece": {
+      "q": "Dame",
+      "r": "Tour",
+      "b": "Fou",
+      "n": "Cavalier"
+    },
+    "Game": {
+      "Title": "Échecs",
+      "Missing": "Cette partie n'existe plus.",
+      "You": "(toi)",
+      "YourTurn": "À toi de jouer.",
+      "Turn": "Au tour de {name}.",
+      "Check": "Échec !",
+      "NoMoves": "Aucun coup joué.",
+      "DrawOffered": "{name} propose la nulle.",
+      "OfferDraw": "Proposer la nulle",
+      "AcceptDraw": "Accepter la nulle",
+      "DeclineDraw": "Refuser",
+      "Resign": "Abandonner",
+      "ResignConfirm": "Abandonner la partie ?",
+      "Rematch": "Revanche",
+      "Undo": "Annuler le coup",
+      "Flip": "Retourner le plateau",
+      "Promote": "Promotion : choisis la pièce"
+    },
+    "Reason": {
+      "checkmate": "par échec et mat",
+      "stalemate": "par pat",
+      "material": "par manque de matériel",
+      "fifty": "par la règle des 50 coups",
+      "repetition": "par triple répétition",
+      "agreement": "d'un commun accord",
+      "resign": "par abandon"
+    },
+    "Result": {
+      "Win": "{name} gagne {reason}.",
+      "Draw": "Partie nulle {reason}."
+    },
+    "List": {
+      "Title": "Gambit — Parties",
+      "Empty": "Aucune partie sur cette scène.",
+      "New": "Nouvelle partie d'échecs",
+      "Play": "Jouer",
+      "Watch": "Regarder",
+      "Pan": "Centrer la vue sur le plateau",
+      "Moves": "{n} coups"
+    },
+    "New": {
+      "Title": "Nouvelle partie d'échecs",
+      "White": "Blancs",
+      "Black": "Noirs",
+      "Player": "Joueur",
+      "Name": "Nom affiché",
+      "NameHint": "Facultatif (ex. : Grumli le nain)",
+      "Size": "Taille du plateau (cases de grille)",
+      "Hint": "Le plateau est posé au centre de la vue ; tu peux ensuite le déplacer ou le redimensionner comme une tuile. « MJ / PNJ » : c'est toi qui joues ce camp.",
+      "Create": "Lancer la partie"
+    },
+    "Chat": {
+      "Title": "Partie d'échecs",
+      "Start": "<strong>{white}</strong> (Blancs) affronte <strong>{black}</strong> (Noirs).",
+      "Moves": "{n} coups joués",
+      "Open": "Jouer / regarder",
+      "Review": "Voir la partie"
+    },
+    "Notice": {
+      "GMOnly": "Gambit : seul le MJ peut faire ça.",
+      "NoScene": "Gambit : aucune scène affichée.",
+      "NoGM": "Gambit : aucun MJ connecté, le coup ne peut pas être enregistré."
+    }
+  }
+}

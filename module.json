@@ -1,0 +1,41 @@
+{
+  "id": "gambit",
+  "title": "Gambit",
+  "description": "Des jeux de plateau dans Foundry VTT, en commençant par les échecs : les joueurs jouent dans une fenêtre, et le plateau posé sur la scène montre la partie en direct à toute la table.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "Argan",
+      "url": "https://github.com/quill-and-seal"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/gambit.css"
+  ],
+  "languages": [
+    {
+      "lang": "fr",
+      "name": "Français",
+      "path": "lang/fr.json"
+    },
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "socket": true,
+  "url": "https://github.com/quill-and-seal/Gambit",
+  "manifest": "https://github.com/quill-and-seal/Gambit/releases/latest/download/module.json",
+  "download": "https://github.com/quill-and-seal/Gambit/releases/download/v0.1.0/module.zip",
+  "bugs": "https://github.com/quill-and-seal/Gambit/issues",
+  "license": "LICENSE",
+  "readme": "README.md"
+}

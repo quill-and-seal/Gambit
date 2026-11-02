@@ -1,0 +1,101 @@
+{
+  "GAMBIT": {
+    "Controls": {
+      "Games": "Gambit — Games on this scene",
+      "New": "Gambit — New chess game"
+    },
+    "Settings": {
+      "Language": {
+        "Name": "Gambit language",
+        "Hint": "Language of Gambit's windows, for you only. The FR / EN button in the windows changes this setting too.",
+        "auto": "Same as Foundry",
+        "fr": "Français",
+        "en": "English"
+      },
+      "AutoOpen": {
+        "Name": "Open my games automatically",
+        "Hint": "When the GM seats you at a game (or starts a rematch), its window opens on its own."
+      },
+      "Announce": {
+        "Name": "Announce games in chat",
+        "Hint": "A message at the start and end of each game, with a button to open it."
+      }
+    },
+    "Lang": {
+      "Toggle": "Change Gambit's language"
+    },
+    "Seat": {
+      "GM": "GM / NPC"
+    },
+    "Piece": {
+      "q": "Queen",
+      "r": "Rook",
+      "b": "Bishop",
+      "n": "Knight"
+    },
+    "Game": {
+      "Title": "Chess",
+      "Missing": "This game no longer exists.",
+      "You": "(you)",
+      "YourTurn": "Your move.",
+      "Turn": "{name} to move.",
+      "Check": "Check!",
+      "NoMoves": "No moves yet.",
+      "DrawOffered": "{name} offers a draw.",
+      "OfferDraw": "Offer a draw",
+      "AcceptDraw": "Accept the draw",
+      "DeclineDraw": "Decline",
+      "Resign": "Resign",
+      "ResignConfirm": "Resign this game?",
+      "Rematch": "Rematch",
+      "Undo": "Take back move",
+      "Flip": "Flip board",
+      "Promote": "Promotion: pick a piece"
+    },
+    "Reason": {
+      "checkmate": "by checkmate",
+      "stalemate": "by stalemate",
+      "material": "by insufficient material",
+      "fifty": "by the 50-move rule",
+      "repetition": "by threefold repetition",
+      "agreement": "by agreement",
+      "resign": "by resignation"
+    },
+    "Result": {
+      "Win": "{name} wins {reason}.",
+      "Draw": "Draw {reason}."
+    },
+    "List": {
+      "Title": "Gambit — Games",
+      "Empty": "No games on this scene.",
+      "New": "New chess game",
+      "Play": "Play",
+      "Watch": "Watch",
+      "Pan": "Center the view on the board",
+      "Moves": "{n} moves"
+    },
+    "New": {
+      "Title": "New chess game",
+      "White": "White",
+      "Black": "Black",
+      "Player": "Player",
+      "Name": "Display name",
+      "NameHint": "Optional (e.g. Grumli the dwarf)",
+      "Size": "Board size (grid squares)",
+      "Hint": "The board is placed at the center of the view; you can then move or resize it like any tile. “GM / NPC”: you play that side.",
+      "Create": "Start the game"
+    },
+    "Chat": {
+      "Title": "Chess game",
+      "Start": "<strong>{white}</strong> (White) takes on <strong>{black}</strong> (Black).",
+      "Moves": "{n} moves played",
+      "Open": "Play / watch",
+      "Review": "View the game"
+    },
+    "Notice": {
+      "GMOnly": "Gambit: only the GM can do that.",
+      "NoScene": "Gambit: no scene is being viewed.",
+      "NoGM": "Gambit: no GM connected, the move cannot be recorded."
+    }
+  }
+}
