@@ -405,7 +405,13 @@
   flex-direction: column;
 }
 
-.gambit .gambit-row button { flex: 0 0 auto; width: auto; }
+.gambit .gambit-row-text .gambit-row-names {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gambit .gambit-row button { flex: 0 0 auto; width: auto; white-space: nowrap; }
 
 /* -------------------------------------------- */
 /*  Nouvelle partie                             */

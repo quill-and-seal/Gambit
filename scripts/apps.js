@@ -526,7 +526,7 @@ export class GamesApp extends BaseApp {
       return `
         <li class="gambit-row ${canMove(data) ? "mine" : ""}">
           <div class="gambit-row-text">
-            <strong>${esc(sideName(data, "w"))}</strong> — <strong>${esc(sideName(data, "b"))}</strong>
+            <span class="gambit-row-names"><strong>${esc(sideName(data, "w"))}</strong> — <strong>${esc(sideName(data, "b"))}</strong></span>
             <span class="hint">${esc(status)} · ${esc(t("List.Moves", { n: Math.ceil(data.moves.length / 2) }))}</span>
           </div>
           <button type="button" data-action="pan" data-tile-id="${tile.id}" data-tooltip="${esc(t("List.Pan"))}" aria-label="${esc(t("List.Pan"))}"><i class="fa-solid fa-location-crosshairs"></i></button>

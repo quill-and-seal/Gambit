@@ -1,5 +1,10 @@
 # Journal des versions
 
+## 0.1.1
+
+- **Double-clic partout** : un double-clic sur le plateau ouvre la partie, aussi en mode Tuiles. Pour configurer la tuile, **Alt + double-clic**
+- Liste des parties : les noms des deux camps tiennent sur une ligne
+
 ## 0.1.0
 
 Première version : les échecs.

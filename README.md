@@ -25,7 +25,7 @@ Gambit parle **français** et **anglais**. Le bouton **FR / EN**, en haut à dro
 
 Pour ouvrir une partie ensuite :
 
-- **double-clic** sur le plateau de la scène ;
+- **double-clic** sur le plateau de la scène, quel que soit l'outil actif (en mode Tuiles, **Alt + double-clic** ouvre toujours la configuration de la tuile) ;
 - le bouton **cavalier** des contrôles de jetons (*Parties de la scène*) : liste des parties, avec **Jouer** / **Regarder** et un bouton pour centrer la vue sur le plateau ;
 - le bouton du **message de chat** qui annonce la partie.
 

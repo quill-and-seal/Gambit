@@ -158,21 +158,43 @@ function autoOpen(doc, data) {
 
 let boundView = null;
 
-/** Un double-clic sur un plateau ouvre la partie (sauf pour le MJ en mode Tuiles, qui l'édite). */
+/** Partie sous un point du canvas (coordonnées de la scène), ou null. */
+function gameTileAt(point) {
+  const inside = (tile) => point.x >= tile.x && point.x <= tile.x + tile.width && point.y >= tile.y && point.y <= tile.y + tile.height;
+  return sceneGames().reverse().find((tile) => (!tile.hidden || game.user.isGM) && inside(tile)) ?? null;
+}
+
+/**
+ * Un double-clic sur un plateau ouvre la partie, quel que soit l'outil actif.
+ * Le MJ garde la configuration de la tuile avec Alt + double-clic en mode Tuiles.
+ */
 function bindDoubleClick() {
-  const view = canvas.app?.view ?? canvas.app?.canvas;
+  const view = canvas.app?.view ?? canvas.app?.canvas ?? document.getElementById("board");
   if (!view || view === boundView) return;
   boundView = view;
+  // Phase de capture : on passe avant les écouteurs du canvas
   view.addEventListener("dblclick", (event) => {
-    if (!canvas.ready || canvas.tiles?.active) return;
+    if (!canvas.ready) return;
+    if (canvas.tiles?.active) return; // géré par le double-clic de la tuile (voir plus bas)
     const point = canvas.canvasCoordinatesFromClient
       ? canvas.canvasCoordinatesFromClient({ x: event.clientX, y: event.clientY })
       : canvas.stage.toLocal({ x: event.clientX, y: event.clientY });
-    const inside = (tile) => point.x >= tile.x && point.x <= tile.x + tile.width && point.y >= tile.y && point.y <= tile.y + tile.height;
-    const hit = sceneGames().reverse().find((tile) => (!tile.hidden || game.user.isGM) && inside(tile));
+    const hit = gameTileAt(point);
     if (hit) openGame(canvas.scene.id, hit.id);
-  });
+  }, true);
 }
+
+/** En mode Tuiles, le double-clic d'une tuile Gambit ouvre la partie au lieu de sa configuration. */
+Hooks.once("setup", () => {
+  const TileClass = CONFIG.Tile?.objectClass ?? foundry.canvas?.placeables?.Tile;
+  const original = TileClass?.prototype?._onClickLeft2;
+  if (typeof original !== "function") return;
+  TileClass.prototype._onClickLeft2 = function (event, ...args) {
+    const alt = event?.altKey ?? event?.data?.originalEvent?.altKey ?? game.keyboard?.isModifierActive?.("Alt");
+    if (gameOf(this) && !alt) return openGame(this.document.parent.id, this.document.id);
+    return original.call(this, event, ...args);
+  };
+});
 
 /* -------------------------------------------- */
 /*  Chat                                        */
