@@ -30,7 +30,14 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
   const frame = Math.round(size * 0.05);
   const cell = (size - 2 * frame) / 8;
   const tex = textures();
-  const pattern = (canvas) => ctx.createPattern(canvas, "repeat");
+  // Les textures gardent la même taille apparente quelle que soit la résolution du plateau
+  const texScale = size / 1600;
+  const pattern = (canvas) => {
+    const p = ctx.createPattern(canvas, "repeat");
+    if (p && typeof DOMMatrix === "function") p.setTransform(new DOMMatrix().scale(texScale));
+    return p;
+  };
+  ctx.imageSmoothingQuality = "high";
 
   ctx.clearRect(0, 0, size, size);
 
@@ -132,6 +139,25 @@ function roundRect(ctx, x, y, w, h, r) {
 /*  Texture de la tuile                         */
 /* -------------------------------------------- */
 
+/** Résolutions extrêmes du plateau dessiné (px). */
+const MIN_PX = 512;
+const MAX_PX = 4096;
+
+/**
+ * Résolution utile : la taille du plateau à l'écran au zoom actuel (et au zoom
+ * maximal un peu plus tard), arrondie par paliers pour ne pas redessiner sans arrêt.
+ */
+function wantedSize(tile) {
+  const doc = tile.document;
+  const side = Math.max(doc.width, doc.height);
+  const zoom = canvas?.stage?.scale?.x ?? 1;
+  const dpr = window.devicePixelRatio || 1;
+  const gpuMax = canvas?.app?.renderer?.gl?.getParameter?.(canvas.app.renderer.gl.MAX_TEXTURE_SIZE) ?? MAX_PX;
+  const px = side * zoom * dpr;
+  const step = 256;
+  return Math.max(MIN_PX, Math.min(MAX_PX, gpuMax, Math.ceil(px / step) * step));
+}
+
 /** Redessine la tuile d'une partie (placeable Tile) si besoin et pose la texture. */
 export function refreshBoard(tile) {
   try {
@@ -139,26 +165,55 @@ export function refreshBoard(tile) {
     const mesh = tile?.mesh;
     if (!data || !mesh || mesh.destroyed) return;
 
+    const want = wantedSize(tile);
     let entry = boards.get(tile.id);
-    if (!entry || entry.texture.destroyed) {
+    // Plus net quand on zoome ; on ne redescend qu'en cas de gros écart (mémoire)
+    const resize = entry && (want > entry.size || want < entry.size / 2);
+    if (!entry || entry.texture.destroyed || resize) {
       const canvasEl = document.createElement("canvas");
-      canvasEl.width = canvasEl.height = BOARD_PX;
+      canvasEl.width = canvasEl.height = want;
       const texture = PIXI.Texture.from(canvasEl);
-      entry = { canvas: canvasEl, texture, signature: null };
+      const old = entry;
+      entry = { canvas: canvasEl, texture, signature: null, size: want };
       boards.set(tile.id, entry);
+      if (old && !old.texture.destroyed) {
+        // La nouvelle texture est posée avant de libérer l'ancienne
+        drawBoard(canvasEl.getContext("2d"), data, want);
+        texture.baseTexture.update();
+        entry.signature = signature(data);
+        swapTexture(mesh, texture);
+        try {
+          old.texture.destroy(true);
+        } catch {
+          /* déjà libérée */
+        }
+      }
     }
 
-    const signature = `${data.id}|${data.fen}|${data.moves?.length ?? 0}`;
-    if (signature !== entry.signature) {
-      drawBoard(entry.canvas.getContext("2d"), data, BOARD_PX);
+    if (signature(data) !== entry.signature) {
+      drawBoard(entry.canvas.getContext("2d"), data, entry.size);
       entry.texture.baseTexture.update();
-      entry.signature = signature;
+      entry.signature = signature(data);
     }
 
     if (mesh.texture !== entry.texture) swapTexture(mesh, entry.texture);
   } catch (err) {
     warn("Plateau non dessiné", err);
   }
+}
+
+const signature = (data) => `${data.id}|${data.fen}|${data.moves?.length ?? 0}`;
+
+let zoomTimer = null;
+
+/** Après un zoom : redessine les plateaux à la nouvelle résolution, une fois le geste fini. */
+export function scheduleZoomRefresh() {
+  clearTimeout(zoomTimer);
+  zoomTimer = setTimeout(() => {
+    for (const tile of canvas?.tiles?.placeables ?? []) {
+      if (boards.has(tile.id) || gameOf(tile)) refreshBoard(tile);
+    }
+  }, 200);
 }
 
 /** Change la texture d'un mesh sans changer sa taille à l'écran. */

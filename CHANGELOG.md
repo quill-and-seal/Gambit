@@ -1,5 +1,10 @@
 # Journal des versions
 
+## 0.1.3
+
+- **Plateau net au zoom** : le plateau de la scène est redessiné à la résolution de l'écran quand on zoome (jusqu'à 4096 px), au lieu d'une image fixe de 800 px qui pixellisait
+- Textures du plateau et des pièces plus fines
+
 ## 0.1.2
 
 Nouveau plateau et mode libre du MJ.

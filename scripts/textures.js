@@ -113,10 +113,10 @@ let cache = null;
 export function textures() {
   if (cache) return cache;
   cache = {
-    stone: greenStone(512),
-    ivory: ivory(256),
-    woodLight: wood(256, [196, 146, 82], [240, 204, 146], 37),
-    woodDark: wood(256, [52, 24, 12], [104, 52, 28], 53)
+    stone: greenStone(1024),
+    ivory: ivory(512),
+    woodLight: wood(512, [196, 146, 82], [240, 204, 146], 37),
+    woodDark: wood(512, [52, 24, 12], [104, 52, 28], 53)
   };
   return cache;
 }
@@ -126,7 +126,7 @@ export function installCssTextures(root = document.documentElement) {
   try {
     const tex = textures();
     for (const [name, canvas] of Object.entries(tex)) {
-      root.style.setProperty(`--gambit-tex-${name}`, `url(${canvas.toDataURL("image/png")})`);
+      root.style.setProperty(`--gambit-tex-${name}`, `url(${canvas.toDataURL("image/jpeg", 0.88)})`);
     }
   } catch (err) {
     console.warn("Gambit | Textures indisponibles", err);

@@ -9,7 +9,7 @@
 
 import { MODULE_ID, SOCKET, LANGUAGES, loadDictionaries, log, t } from "./constants.js";
 import { gameOf, sceneGames, seatsOf, createGame, request, onSocket, findTile } from "./game.js";
-import { refreshBoard, releaseBoard, releaseAll, refreshAll } from "./board-texture.js";
+import { refreshBoard, releaseBoard, releaseAll, refreshAll, scheduleZoomRefresh } from "./board-texture.js";
 import { openGame, openGames, newGameDialog, refreshApps, rerenderAll } from "./apps.js";
 import * as chess from "./chess.js";
 import { installCssTextures } from "./textures.js";
@@ -122,6 +122,8 @@ Hooks.on("getSceneControlButtons", (controls) => {
 Hooks.on("drawTile", (tile) => refreshBoard(tile));
 Hooks.on("refreshTile", (tile) => refreshBoard(tile));
 Hooks.on("canvasTearDown", () => releaseAll());
+// Zoom : plateau redessiné à la résolution de l'écran (sinon il pixellise)
+Hooks.on("canvasPan", () => scheduleZoomRefresh());
 Hooks.on("canvasReady", () => {
   refreshApps();
   bindDoubleClick();
