@@ -19,6 +19,10 @@
       "Announce": {
         "Name": "Announce games in chat",
         "Hint": "A message at the start and end of each game, with a button to open it."
+      },
+      "DefaultTheme": {
+        "Name": "Default theme",
+        "Hint": "Visual theme for new games. The GM can change it per game, when creating it or from the game window."
       }
     },
     "Lang": {
@@ -114,6 +118,13 @@
     "Side": {
       "w": "White",
       "b": "Black"
+    },
+    "Theme": {
+      "Label": "Board theme",
+      "malachite": "Malachite (green stone and wood)",
+      "wood": "Classic wood",
+      "marble": "Marble",
+      "tavern": "Tavern (oak, pewter and copper)"
     }
   }
 }

@@ -19,6 +19,10 @@
       "Announce": {
         "Name": "Annoncer les parties dans le chat",
         "Hint": "Un message au début et à la fin de chaque partie, avec un bouton pour l'ouvrir."
+      },
+      "DefaultTheme": {
+        "Name": "Thème par défaut",
+        "Hint": "Thème visuel des nouvelles parties. Le MJ peut le changer pour chaque partie, à la création ou dans la fenêtre de la partie."
       }
     },
     "Lang": {
@@ -114,6 +118,13 @@
     "Side": {
       "w": "Blancs",
       "b": "Noirs"
+    },
+    "Theme": {
+      "Label": "Thème du plateau",
+      "malachite": "Malachite (pierre verte et bois)",
+      "wood": "Bois classique",
+      "marble": "Marbre",
+      "tavern": "Taverne (chêne, étain et cuivre)"
     }
   }
 }

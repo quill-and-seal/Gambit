@@ -29,6 +29,10 @@ Pour ouvrir une partie ensuite :
 - le bouton **cavalier** des contrôles de jetons (*Parties de la scène*) : liste des parties, avec **Jouer** / **Regarder** et un bouton pour centrer la vue sur le plateau ;
 - le bouton du **message de chat** qui annonce la partie.
 
+## Thèmes
+
+Quatre thèmes visuels : **Malachite** (pierre verte et bois), **Bois classique**, **Marbre** et **Taverne** (chêne, étain et cuivre). Le MJ choisit le thème à la création de la partie, ou le change à tout moment depuis la fenêtre de la partie. Le plateau de la scène suit.
+
 ## Jouer
 
 - **Clic-clic** ou **glisser-déposer** : choisis une pièce, ses cases d'arrivée s'affichent (un point, ou un anneau pour une prise).
@@ -48,6 +52,7 @@ Les coups passent par le **MJ connecté**, qui les vérifie avant de les enregis
 | Langue de Gambit | joueur | Comme Foundry, français ou anglais |
 | Ouvrir mes parties automatiquement | joueur | La fenêtre s'ouvre quand on t'installe à une partie |
 | Annoncer les parties dans le chat | monde | Message au début et à la fin de chaque partie |
+| Thème par défaut | monde | Thème visuel des nouvelles parties |
 
 ## API
 

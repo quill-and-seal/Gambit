@@ -12,7 +12,8 @@ import { gameOf, sceneGames, seatsOf, createGame, request, onSocket, findTile } 
 import { refreshBoard, releaseBoard, releaseAll, refreshAll, scheduleZoomRefresh } from "./board-texture.js";
 import { openGame, openGames, newGameDialog, refreshApps, rerenderAll } from "./apps.js";
 import * as chess from "./chess.js";
-import { installCssTextures } from "./textures.js";
+import { THEME_IDS, DEFAULT_THEME, ensureTheme, onThemeReady } from "./textures.js";
+import { themeOfGame } from "./game.js";
 
 /* -------------------------------------------- */
 /*  Initialisation                              */
@@ -44,6 +45,21 @@ Hooks.once("init", () => {
     default: true
   });
 
+  // Thème visuel des nouvelles parties (et des parties sans thème choisi)
+  game.settings.register(MODULE_ID, "defaultTheme", {
+    name: "GAMBIT.Settings.DefaultTheme.Name",
+    hint: "GAMBIT.Settings.DefaultTheme.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: Object.fromEntries(THEME_IDS.map((id) => [id, `GAMBIT.Theme.${id}`])),
+    default: DEFAULT_THEME,
+    onChange: () => {
+      refreshAll();
+      refreshApps();
+    }
+  });
+
   // Message dans le chat au début et à la fin d'une partie
   game.settings.register(MODULE_ID, "announce", {
     name: "GAMBIT.Settings.Announce.Name",
@@ -57,8 +73,6 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
   game.socket.on(SOCKET, (message, senderId) => onSocket(message, senderId));
-  // Textures du plateau et des pièces pour les fenêtres (générées une fois)
-  installCssTextures();
 
   game.modules.get(MODULE_ID).api = {
     /** Crée une partie (MJ) : { white, black, whiteName, blackName, size, x, y }. */
@@ -76,6 +90,13 @@ Hooks.once("ready", () => {
     /** Moteur de règles (pur, sans Foundry). */
     chess
   };
+
+  // Textures : thème par défaut préparé en arrière-plan, plateaux et fenêtres redessinés à chaque thème prêt
+  onThemeReady(() => {
+    refreshAll();
+    rerenderAll();
+  });
+  ensureTheme(themeOfGame(null));
 
   // Les pièces sont des caractères : on redessine une fois les polices prêtes
   document.fonts?.ready?.then(() => refreshAll());

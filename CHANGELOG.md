@@ -1,5 +1,14 @@
 # Journal des versions
 
+## 0.1.4
+
+Thèmes visuels au choix du MJ.
+
+- **4 thèmes** : *Malachite* (pierre verte et bois), *Bois classique* (érable et noyer, pièces en buis et ébène), *Marbre* (marbre blanc et noir, filet doré), *Taverne* (chêne, pièces en étain et en cuivre)
+- Le MJ choisit le thème **à la création** d'une partie, ou le **change en cours de partie** depuis la fenêtre (liste sous les boutons) ; tout le monde voit le changement, sur la scène comme dans la fenêtre
+- Réglage du monde **Thème par défaut** pour les nouvelles parties
+- Les textures sont fabriquées **en arrière-plan** : Foundry ne se fige plus pendant leur génération ; en attendant, le plateau s'affiche avec les couleurs unies du thème
+
 ## 0.1.3
 
 - **Plateau net au zoom** : le plateau de la scène est redessiné à la résolution de l'écran quand on zoome (jusqu'à 4096 px), au lieu d'une image fixe de 800 px qui pixellisait

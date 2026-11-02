@@ -7,6 +7,7 @@
  */
 
 import { MODULE_ID, SOCKET, FLAG_GAME, BOARD_IMAGE, t, esc, warn } from "./constants.js";
+import { THEMES, DEFAULT_THEME } from "./textures.js";
 import { START_FEN, parseFen, toFen, findMove, applyMove, toSan, gameStatus, positionKey, sanitize } from "./chess.js";
 
 /* -------------------------------------------- */
@@ -72,8 +73,20 @@ export function resultText(gameData) {
 /*  Création                                    */
 /* -------------------------------------------- */
 
+/** Thème visuel d'une partie (celui choisi par le MJ, sinon le thème par défaut du monde). */
+export function themeOfGame(gameData) {
+  if (THEMES[gameData?.theme]) return gameData.theme;
+  let fallback = DEFAULT_THEME;
+  try {
+    fallback = game.settings.get(MODULE_ID, "defaultTheme");
+  } catch {
+    /* réglage pas encore enregistré */
+  }
+  return THEMES[fallback] ? fallback : DEFAULT_THEME;
+}
+
 /** Données d'une nouvelle partie. */
-export function newGameData({ white = null, black = null, whiteName = "", blackName = "" } = {}) {
+export function newGameData({ white = null, black = null, whiteName = "", blackName = "", theme = null } = {}) {
   return {
     kind: "chess",
     id: foundry.utils.randomID(),
@@ -86,6 +99,7 @@ export function newGameData({ white = null, black = null, whiteName = "", blackN
     result: null,
     reason: null,
     drawOffer: null,
+    theme: THEMES[theme] ? theme : null,
     startedAt: Date.now()
   };
 }
@@ -125,7 +139,7 @@ export async function createGame(options = {}) {
 /**
  * Envoie une action sur une partie. Le MJ actif l'exécute lui-même ;
  * les autres la lui transmettent par socket.
- * op : move | resign | offerDraw | acceptDraw | declineDraw | rematch | undo
+ * op : move | resign | offerDraw | acceptDraw | declineDraw | rematch | undo | edit | theme
  */
 export async function request(tile, op, payload = {}) {
   const doc = tile?.document ?? tile;
@@ -188,7 +202,8 @@ async function execute(message, userId) {
       // Les couleurs s'inversent
       next = newGameData({
         white: current.players.b, black: current.players.w,
-        whiteName: current.names?.b, blackName: current.names?.w
+        whiteName: current.names?.b, blackName: current.names?.w,
+        theme: current.theme
       });
       break;
     }
@@ -200,6 +215,11 @@ async function execute(message, userId) {
         warn("Position refusée", err);
         return;
       }
+      break;
+    }
+    case "theme": {
+      if (!user.isGM || !THEMES[message.theme]) return;
+      next = { ...current, theme: message.theme };
       break;
     }
     case "undo": {

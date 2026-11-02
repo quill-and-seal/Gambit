@@ -1,10 +1,17 @@
 /* Gambit — styles des fenêtres et des messages */
 
 .gambit {
+  /* Couleurs de repli : chaque fenêtre de partie reçoit celles de son thème */
   --gambit-light: #ece3c6;
   --gambit-dark: #3c7a4f;
   --gambit-frame: #2e6b42;
   --gambit-inlay: #b3262a;
+  --gambit-ink-light: #2e6b42;
+  --gambit-ink-dark: #ece3c6;
+  --gambit-white: #f0cc92;
+  --gambit-black: #5a2c18;
+  --gambit-stroke-white: #3b2412;
+  --gambit-stroke-black: #d9b47a;
   --gambit-accent: #c8923a;
   --gambit-last: rgba(222, 186, 64, 0.55);
   --gambit-select: rgba(92, 160, 90, 0.6);
@@ -106,7 +113,7 @@
   position: relative;
   padding: 0.6rem;
   border-radius: 0.5rem;
-  background: var(--gambit-tex-stone, none) center / 256px, var(--gambit-frame);
+  background: var(--gambit-tex-frame, none) center / 256px, var(--gambit-frame);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
@@ -147,8 +154,8 @@
   background-position: calc(var(--c, 0) * 100% / 7) calc(var(--r, 0) * 100% / 7);
 }
 
-.gambit .gambit-sq.light { background-color: var(--gambit-light); background-image: var(--gambit-tex-ivory, none); background-size: 400% 400%; color: #2e6b42; }
-.gambit .gambit-sq.dark { background-color: var(--gambit-dark); background-image: var(--gambit-tex-stone, none); color: #ece3c6; }
+.gambit .gambit-sq.light { background-color: var(--gambit-light); background-image: var(--gambit-tex-light, none); color: var(--gambit-ink-light); }
+.gambit .gambit-sq.dark { background-color: var(--gambit-dark); background-image: var(--gambit-tex-dark, none); color: var(--gambit-ink-dark); }
 
 /* Surlignages : calque au-dessus de la texture */
 .gambit .gambit-sq::before {
@@ -228,18 +235,18 @@
 
 .gambit .gambit-piece.white,
 .gambit-ghost.white {
-  color: #f0cc92;
-  background-color: #f0cc92;
-  background-image: var(--gambit-tex-woodLight, none);
-  -webkit-text-stroke: 0.035em #3b2412;
+  color: var(--gambit-white);
+  background-color: var(--gambit-white);
+  background-image: var(--gambit-tex-white, none);
+  -webkit-text-stroke: 0.035em var(--gambit-stroke-white);
 }
 
 .gambit .gambit-piece.black,
 .gambit-ghost.black {
-  color: #5a2c18;
-  background-color: #5a2c18;
-  background-image: var(--gambit-tex-woodDark, none);
-  -webkit-text-stroke: 0.035em #d9b47a;
+  color: var(--gambit-black);
+  background-color: var(--gambit-black);
+  background-image: var(--gambit-tex-black, none);
+  -webkit-text-stroke: 0.035em var(--gambit-stroke-black);
 }
 
 .gambit .gambit-piece.lifted { opacity: 0.25; }
@@ -287,8 +294,8 @@
   vertical-align: -0.1rem;
 }
 
-.gambit .gambit-swatch.white { background: var(--gambit-tex-woodLight, none) center / 2rem, #f0cc92; }
-.gambit .gambit-swatch.black { background: var(--gambit-tex-woodDark, none) center / 2rem, #5a2c18; border-color: rgba(255, 255, 255, 0.5); }
+.gambit .gambit-swatch.white { background: var(--gambit-tex-white, none) center / 2rem, var(--gambit-white); }
+.gambit .gambit-swatch.black { background: var(--gambit-tex-black, none) center / 2rem, var(--gambit-black); border-color: rgba(255, 255, 255, 0.5); }
 
 .gambit .gambit-captured {
   margin-left: auto;
@@ -407,7 +414,7 @@
   height: 3.4rem;
   padding: 0;
   border-radius: 0.4rem;
-  background: var(--gambit-tex-stone, none) center / 200px, var(--gambit-dark);
+  background: var(--gambit-tex-dark, none) center / 200px, var(--gambit-dark);
   border: 2px solid transparent;
   container-type: size;
 }
@@ -515,7 +522,7 @@
   padding: 0;
   border-radius: 0.3rem;
   border: 2px solid transparent;
-  background: var(--gambit-tex-stone, none) center / 200px, var(--gambit-dark);
+  background: var(--gambit-tex-dark, none) center / 200px, var(--gambit-dark);
   container-type: size;
 }
 
@@ -529,3 +536,13 @@
 }
 
 .gambit .gambit-edit-buttons button { flex: 1 1 auto; width: auto; }
+
+/* Choix du thème (MJ) */
+.gambit .gambit-theme {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.gambit .gambit-theme select { flex: 1 1 auto; }

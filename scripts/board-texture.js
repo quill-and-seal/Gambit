@@ -9,7 +9,8 @@
 import { BOARD_PX, COLORS, GLYPHS, warn } from "./constants.js";
 import { gameOf, stateOf } from "./game.js";
 import { fileOf, rowOf, inCheck, kingSquare } from "./chess.js";
-import { textures } from "./textures.js";
+import { themeTextures, themeColors } from "./textures.js";
+import { themeOfGame } from "./game.js";
 
 /** Plateaux dessinés : id de tuile → { canvas, texture, signature }. */
 const boards = new Map();
@@ -29,10 +30,13 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
   const state = stateOf(gameData);
   const frame = Math.round(size * 0.05);
   const cell = (size - 2 * frame) / 8;
-  const tex = textures();
+  const tex = themeTextures(themeOfGame(gameData)) ?? {};
+  const colors = themeColors(themeOfGame(gameData));
   // Les textures gardent la même taille apparente quelle que soit la résolution du plateau
   const texScale = size / 1600;
-  const pattern = (canvas) => {
+  // Textures pas encore prêtes (générées en arrière-plan) : couleurs unies du thème
+  const pattern = (canvas, fallback) => {
+    if (!canvas) return fallback;
     const p = ctx.createPattern(canvas, "repeat");
     if (p && typeof DOMMatrix === "function") p.setTransform(new DOMMatrix().scale(texScale));
     return p;
@@ -45,7 +49,7 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
   ctx.save();
   roundRect(ctx, 0, 0, size, size, frame * 0.5);
   ctx.clip();
-  ctx.fillStyle = pattern(tex.stone);
+  ctx.fillStyle = pattern(tex.frame, colors.frame);
   ctx.fillRect(0, 0, size, size);
   ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
   ctx.lineWidth = frame * 0.25;
@@ -54,8 +58,8 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
   ctx.restore();
 
   // Cases
-  const light = pattern(tex.ivory);
-  const dark = pattern(tex.stone);
+  const light = pattern(tex.light, colors.light);
+  const dark = pattern(tex.dark, colors.dark);
   const last = gameData.moves?.at(-1);
   const checked = inCheck(state) ? kingSquare(state.board, state.turn) : -1;
   for (let sq = 0; sq < 64; sq++) {
@@ -77,13 +81,13 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
   }
 
   // Filet rouge autour des cases
-  ctx.strokeStyle = COLORS.inlay;
+  ctx.strokeStyle = colors.inlay;
   ctx.lineWidth = Math.max(2, size * 0.006);
   const inset = ctx.lineWidth * 1.6;
   ctx.strokeRect(frame - inset, frame - inset, cell * 8 + 2 * inset, cell * 8 + 2 * inset);
 
   // Coordonnées dans le cadre
-  ctx.fillStyle = "rgba(240, 232, 205, 0.85)";
+  ctx.fillStyle = colors.frameInk;
   ctx.font = `600 ${Math.round(frame * 0.5)}px sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -94,8 +98,8 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
   }
 
   // Pièces : bois clair et bois foncé, contour et ombre portée
-  const woodLight = pattern(tex.woodLight);
-  const woodDark = pattern(tex.woodDark);
+  const woodLight = pattern(tex.white, colors.white);
+  const woodDark = pattern(tex.black, colors.black);
   ctx.font = `${Math.round(cell * 0.8)}px ${PIECE_FONT}`;
   ctx.lineJoin = "round";
   for (let sq = 0; sq < 64; sq++) {
@@ -116,7 +120,7 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
     ctx.shadowBlur = cell * 0.08;
     ctx.shadowOffsetY = cell * 0.04;
     ctx.lineWidth = Math.max(2, cell * 0.06);
-    ctx.strokeStyle = white ? "#3b2412" : "#d9b47a";
+    ctx.strokeStyle = white ? colors.strokeWhite : colors.strokeBlack;
     ctx.strokeText(glyph, cx, cy);
     ctx.restore();
 
@@ -202,7 +206,7 @@ export function refreshBoard(tile) {
   }
 }
 
-const signature = (data) => `${data.id}|${data.fen}|${data.moves?.length ?? 0}`;
+const signature = (data) => `${data.id}|${data.fen}|${data.moves?.length ?? 0}|${themeOfGame(data)}|${themeTextures(themeOfGame(data)) ? 1 : 0}`;
 
 let zoomTimer = null;
 

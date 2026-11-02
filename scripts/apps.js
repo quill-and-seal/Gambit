@@ -6,7 +6,8 @@
  */
 
 import { MODULE_ID, GLYPHS, LANGUAGES, gambitLang, t, esc } from "./constants.js";
-import { gameOf, findTile, sceneGames, stateOf, seatsOf, canMove, sideName, resultText, request, createGame } from "./game.js";
+import { THEME_IDS, applyTheme } from "./textures.js";
+import { themeOfGame, gameOf, findTile, sceneGames, stateOf, seatsOf, canMove, sideName, resultText, request, createGame } from "./game.js";
 import { fileOf, rowOf, squareName, legalMoves, inCheck, kingSquare, gameStatus, toFen, sanitize } from "./chess.js";
 
 const { ApplicationV2, DialogV2 } = foundry.applications.api;
@@ -329,7 +330,13 @@ export class GambitApp extends BaseApp {
       buttons.push(btn("toggleEdit", "fa-hand", t(this.editMode ? "Edit.Off" : "Edit.On"), this.editMode ? 'class="active"' : ""));
     }
     buttons.push(btn("flip", "fa-arrows-up-down", t("Game.Flip")));
-    return `<div class="gambit-buttons">${buttons.join("")}</div>`;
+    let theme = "";
+    if (game.user.isGM) {
+      const current = themeOfGame(data);
+      const options = THEME_IDS.map((id) => `<option value="${id}" ${id === current ? "selected" : ""}>${esc(t(`Theme.${id}`))}</option>`).join("");
+      theme = `<label class="gambit-theme"><i class="fa-solid fa-palette"></i> <select name="gambit-theme" aria-label="${esc(t("Theme.Label"))}" data-tooltip="${esc(t("Theme.Label"))}">${options}</select></label>`;
+    }
+    return `<div class="gambit-buttons">${buttons.join("")}${theme}</div>`;
   }
 
   _promotionHTML(turn) {
@@ -352,6 +359,11 @@ export class GambitApp extends BaseApp {
 
   _onRender(context, options) {
     super._onRender(context, options);
+    if (this.data) applyTheme(this.element, themeOfGame(this.data));
+    // Thème (MJ) : appliqué à la partie pour tout le monde
+    this.element.querySelector("select[name=gambit-theme]")?.addEventListener("change", (event) => {
+      request(this.tile, "theme", { theme: event.target.value });
+    });
     const board = this.element.querySelector(".gambit-board.playable");
     if (board) board.addEventListener("pointerdown", (event) => this.#onPointerDown(event));
     // Mode libre : clic droit sur une pièce pour la retirer
@@ -381,6 +393,7 @@ export class GambitApp extends BaseApp {
     const rect = piece.getBoundingClientRect();
     const ghost = piece.cloneNode(true);
     ghost.classList.add("gambit-ghost");
+    applyTheme(ghost, themeOfGame(this.data));
     Object.assign(ghost.style, { width: `${rect.width}px`, height: `${rect.height}px`, fontSize: getComputedStyle(piece).fontSize });
     let dragging = false;
     const startX = event.clientX;
@@ -734,6 +747,8 @@ export async function newGameDialog() {
     ...players.map((u) => `<option value="${u.id}" ${u.id === selected ? "selected" : ""}>${esc(u.name)}</option>`)
   ].join("");
   const [first, second] = players.filter((u) => u.active);
+  const defaultTheme = themeOfGame(null);
+  const themeOptions = THEME_IDS.map((id) => `<option value="${id}" ${id === defaultTheme ? "selected" : ""}>${esc(t(`Theme.${id}`))}</option>`).join("");
 
   const content = `
     <div class="gambit-new">
@@ -747,6 +762,10 @@ export async function newGameDialog() {
         <div class="form-group"><label>${esc(t("New.Player"))}</label><select name="black">${options(second?.id)}</select></div>
         <div class="form-group"><label>${esc(t("New.Name"))}</label><input type="text" name="blackName" placeholder="${esc(t("New.NameHint"))}"></div>
       </fieldset>
+      <div class="form-group">
+        <label>${esc(t("Theme.Label"))}</label>
+        <select name="theme">${themeOptions}</select>
+      </div>
       <div class="form-group">
         <label>${esc(t("New.Size"))}</label>
         <input type="number" name="size" value="3" min="1" max="20" step="1">
@@ -768,7 +787,8 @@ export async function newGameDialog() {
           black: f.black.value || null,
           whiteName: f.whiteName.value.trim(),
           blackName: f.blackName.value.trim(),
-          size: Number(f.size.value) || 3
+          size: Number(f.size.value) || 3,
+          theme: f.theme.value
         };
       }
     },
