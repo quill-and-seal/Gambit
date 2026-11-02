@@ -1,9 +1,10 @@
 /* Gambit — styles des fenêtres et des messages */
 
 .gambit {
-  --gambit-light: #ecd9b4;
-  --gambit-dark: #a9794e;
-  --gambit-frame: #4a3222;
+  --gambit-light: #ece3c6;
+  --gambit-dark: #3c7a4f;
+  --gambit-frame: #2e6b42;
+  --gambit-inlay: #b3262a;
   --gambit-accent: #c8923a;
   --gambit-last: rgba(222, 186, 64, 0.55);
   --gambit-select: rgba(92, 160, 90, 0.6);
@@ -105,8 +106,8 @@
   position: relative;
   padding: 0.6rem;
   border-radius: 0.5rem;
-  background: var(--gambit-frame);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: var(--gambit-tex-stone, none) center / 256px, var(--gambit-frame);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
 .gambit .gambit-board {
@@ -116,6 +117,8 @@
   width: 100%;
   user-select: none;
   touch-action: none;
+  outline: 3px solid var(--gambit-inlay);
+  outline-offset: 2px;
 }
 
 .gambit .gambit-sq {
@@ -137,15 +140,30 @@
   container-type: size;
 }
 
-.gambit .gambit-sq.light { background: var(--gambit-light); color: var(--gambit-dark); }
-.gambit .gambit-sq.dark { background: var(--gambit-dark); color: var(--gambit-light); }
+.gambit .gambit-sq.light,
+.gambit .gambit-sq.dark {
+  /* Une seule texture pour tout le plateau : chaque case en montre sa part */
+  background-size: 800% 800%;
+  background-position: calc(var(--c, 0) * 100% / 7) calc(var(--r, 0) * 100% / 7);
+}
+
+.gambit .gambit-sq.light { background-color: var(--gambit-light); background-image: var(--gambit-tex-ivory, none); background-size: 400% 400%; color: #2e6b42; }
+.gambit .gambit-sq.dark { background-color: var(--gambit-dark); background-image: var(--gambit-tex-stone, none); color: #ece3c6; }
+
+/* Surlignages : calque au-dessus de la texture */
+.gambit .gambit-sq::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
 .gambit .gambit-sq:hover,
 .gambit .gambit-sq:focus-visible { box-shadow: none; outline: none; }
 .gambit .gambit-sq:focus-visible { box-shadow: inset 0 0 0 3px var(--gambit-accent); }
 
-.gambit .gambit-sq.last { background-image: linear-gradient(var(--gambit-last), var(--gambit-last)); }
-.gambit .gambit-sq.selected { background-image: linear-gradient(var(--gambit-select), var(--gambit-select)); }
-.gambit .gambit-sq.check { background-image: radial-gradient(circle, var(--gambit-check) 0%, rgba(200, 40, 40, 0) 72%); }
+.gambit .gambit-sq.last::before { background: var(--gambit-last); }
+.gambit .gambit-sq.selected::before { background: var(--gambit-select); }
+.gambit .gambit-sq.check::before { background: radial-gradient(circle, var(--gambit-check) 0%, rgba(200, 40, 40, 0) 72%); }
 
 .gambit .gambit-board.playable .gambit-sq.movable,
 .gambit .gambit-board.playable .gambit-sq.target { cursor: pointer; }
@@ -169,7 +187,9 @@
   box-shadow: inset 0 0 0 0.35rem var(--gambit-target);
 }
 
-.gambit .gambit-sq.target:hover { background-image: linear-gradient(var(--gambit-select), var(--gambit-select)); }
+.gambit .gambit-sq.target:hover::before,
+.gambit .gambit-board.editing .gambit-sq:hover::before { background: var(--gambit-select); }
+.gambit .gambit-board.placing .gambit-sq { cursor: copy; }
 
 .gambit .coord {
   position: absolute;
@@ -194,18 +214,32 @@
   transition: transform 80ms ease;
 }
 
-.gambit .gambit-piece.white {
-  color: #fffaf0;
-  -webkit-text-stroke: 0.045em #2b2118;
-  paint-order: stroke fill;
-  text-shadow: 0 0.04em 0.06em rgba(0, 0, 0, 0.35);
+/* Bois : la texture remplit le glyphe, un contour le détache de la case */
+.gambit .gambit-piece.white,
+.gambit .gambit-piece.black,
+.gambit-ghost.white,
+.gambit-ghost.black {
+  background-size: 3em 3em;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0.04em 0.05em rgba(0, 0, 0, 0.5));
 }
 
-.gambit .gambit-piece.black {
-  color: #1e1915;
-  -webkit-text-stroke: 0.03em rgba(255, 244, 225, 0.85);
-  paint-order: stroke fill;
-  text-shadow: 0 0.04em 0.06em rgba(0, 0, 0, 0.35);
+.gambit .gambit-piece.white,
+.gambit-ghost.white {
+  color: #f0cc92;
+  background-color: #f0cc92;
+  background-image: var(--gambit-tex-woodLight, none);
+  -webkit-text-stroke: 0.035em #3b2412;
+}
+
+.gambit .gambit-piece.black,
+.gambit-ghost.black {
+  color: #5a2c18;
+  background-color: #5a2c18;
+  background-image: var(--gambit-tex-woodDark, none);
+  -webkit-text-stroke: 0.035em #d9b47a;
 }
 
 .gambit .gambit-piece.lifted { opacity: 0.25; }
@@ -220,11 +254,9 @@
   font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "DejaVu Sans", "Arial Unicode MS", serif;
   line-height: 1;
   transform: scale(1.12);
-  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
 }
 
-.gambit-ghost.white { color: #fffaf0; -webkit-text-stroke: 0.045em #2b2118; paint-order: stroke fill; }
-.gambit-ghost.black { color: #1e1915; -webkit-text-stroke: 0.03em rgba(255, 244, 225, 0.85); paint-order: stroke fill; }
+
 
 /* Joueurs au-dessus et au-dessous du plateau */
 .gambit .gambit-player {
@@ -255,8 +287,8 @@
   vertical-align: -0.1rem;
 }
 
-.gambit .gambit-swatch.white { background: #fffaf0; }
-.gambit .gambit-swatch.black { background: #1e1915; border-color: rgba(255, 255, 255, 0.5); }
+.gambit .gambit-swatch.white { background: var(--gambit-tex-woodLight, none) center / 2rem, #f0cc92; }
+.gambit .gambit-swatch.black { background: var(--gambit-tex-woodDark, none) center / 2rem, #5a2c18; border-color: rgba(255, 255, 255, 0.5); }
 
 .gambit .gambit-captured {
   margin-left: auto;
@@ -324,6 +356,14 @@
 
 .gambit .gambit-moves.empty li { display: block; font-family: inherit; }
 .gambit .gambit-moves .num { opacity: 0.55; }
+.gambit .gambit-moves li.edit {
+  display: block;
+  font-family: var(--font-primary, sans-serif);
+  font-style: italic;
+  opacity: 0.8;
+}
+.gambit .gambit-moves li.edit.last { opacity: 1; color: var(--gambit-accent); }
+.gambit .gambit-moves li.edit .gambit-piece { font-size: 1.05em; font-style: normal; }
 .gambit .gambit-moves .san.last { font-weight: 700; color: var(--gambit-accent); }
 
 .gambit .gambit-buttons {
@@ -367,7 +407,7 @@
   height: 3.4rem;
   padding: 0;
   border-radius: 0.4rem;
-  background: var(--gambit-dark);
+  background: var(--gambit-tex-stone, none) center / 200px, var(--gambit-dark);
   border: 2px solid transparent;
   container-type: size;
 }
@@ -434,3 +474,58 @@
 
 .gambit-chat p { margin: 0 0 0.4rem; }
 .gambit-chat .gambit-chat-moves { opacity: 0.7; font-size: 0.9em; }
+
+/* -------------------------------------------- */
+/*  Mode libre (MJ)                             */
+/* -------------------------------------------- */
+
+.gambit .gambit-buttons button.active {
+  border-color: var(--gambit-accent);
+  background: rgba(200, 146, 58, 0.2);
+}
+
+.gambit .gambit-edit-badge {
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.35rem;
+  background: rgba(200, 146, 58, 0.18);
+  border: 1px solid var(--gambit-accent);
+  font-weight: 700;
+}
+
+.gambit .gambit-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px dashed var(--gambit-accent);
+}
+
+.gambit .gambit-palette {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.2rem;
+}
+
+.gambit .gambit-palette button {
+  aspect-ratio: 1;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0.3rem;
+  border: 2px solid transparent;
+  background: var(--gambit-tex-stone, none) center / 200px, var(--gambit-dark);
+  container-type: size;
+}
+
+.gambit .gambit-palette button:hover { border-color: rgba(200, 146, 58, 0.6); }
+.gambit .gambit-palette button.active { border-color: var(--gambit-accent); box-shadow: 0 0 0 2px var(--gambit-accent); }
+
+.gambit .gambit-edit-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.gambit .gambit-edit-buttons button { flex: 1 1 auto; width: auto; }

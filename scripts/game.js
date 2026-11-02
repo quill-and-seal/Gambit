@@ -7,7 +7,7 @@
  */
 
 import { MODULE_ID, SOCKET, FLAG_GAME, BOARD_IMAGE, t, esc, warn } from "./constants.js";
-import { START_FEN, parseFen, toFen, findMove, applyMove, toSan, gameStatus, positionKey } from "./chess.js";
+import { START_FEN, parseFen, toFen, findMove, applyMove, toSan, gameStatus, positionKey, sanitize } from "./chess.js";
 
 /* -------------------------------------------- */
 /*  Lecture                                     */
@@ -192,6 +192,16 @@ async function execute(message, userId) {
       });
       break;
     }
+    case "edit": {
+      if (!user.isGM) return;
+      try {
+        next = editPosition(current, message.fen, message.change, user.id);
+      } catch (err) {
+        warn("Position refusée", err);
+        return;
+      }
+      break;
+    }
     case "undo": {
       if (!user.isGM || !current.moves.length) return;
       next = undoMove(current);
@@ -221,22 +231,59 @@ export function playMove(current, { from, to, promotion }, userId = null) {
     fen,
     keys,
     drawOffer: null,
-    moves: [...current.moves, { from: move.from, to: move.to, promotion: move.promotion, san, by: userId }]
+    moves: [...current.moves, { from: move.from, to: move.to, promotion: move.promotion, san, color: state.turn, by: userId, fenBefore: current.fen }]
   };
   const status = gameStatus(after, keys);
   return status.over ? finish(next, status.result, status.reason) : next;
 }
 
-/** Reprend le dernier coup : on rejoue la partie depuis le début sans lui. */
+/** Reprend la dernière entrée (coup ou retouche du MJ). */
 export function undoMove(current) {
+  const last = current.moves.at(-1);
+  if (!last) return current;
+  const moves = current.moves.slice(0, -1);
+  const reopen = { status: "playing", result: null, reason: null, drawOffer: null };
+  if (last.fenBefore) {
+    const keys = last.keysBefore ?? (current.keys ?? []).slice(0, -1);
+    return { ...current, ...reopen, fen: last.fenBefore, keys, moves };
+  }
+  // Parties de la 0.1.0 : pas de position enregistrée, on rejoue depuis le début
   let state = parseFen(START_FEN);
   const keys = [positionKey(START_FEN)];
-  const moves = current.moves.slice(0, -1);
   for (const m of moves) {
     state = applyMove(state, findMove(state, m));
     keys.push(positionKey(toFen(state)));
   }
-  return { ...current, fen: toFen(state), keys, moves, status: "playing", result: null, reason: null, drawOffer: null };
+  return { ...current, ...reopen, fen: toFen(state), keys, moves };
+}
+
+/**
+ * Retouche du MJ (mode libre) : nouvelle position posée telle quelle, sans vérifier les règles.
+ * change : { type: "move" | "remove" | "place" | "turn", piece, from, to }
+ */
+export function editPosition(current, fen, change = {}, userId = null) {
+  const state = sanitize(parseFen(fen));
+  const next = toFen(state);
+  const entry = {
+    edit: change.type ?? "move",
+    piece: change.piece ?? null,
+    from: Number.isInteger(change.from) ? change.from : undefined,
+    to: Number.isInteger(change.to) ? change.to : undefined,
+    by: userId,
+    fenBefore: current.fen,
+    keysBefore: current.keys ?? []
+  };
+  // La répétition repart de cette position : l'historique d'avant ne compte plus
+  return {
+    ...current,
+    fen: next,
+    keys: [positionKey(next)],
+    moves: [...current.moves, entry],
+    status: "playing",
+    result: null,
+    reason: null,
+    drawOffer: null
+  };
 }
 
 function finish(current, result, reason) {

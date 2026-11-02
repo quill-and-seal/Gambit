@@ -386,3 +386,14 @@ export function gameStatus(state, keys = []) {
   if (keys.filter((k) => k === key).length >= 3) return { over: true, result: "1/2-1/2", reason: "repetition", check };
   return { over: false, result: null, reason: null, check };
 }
+
+/**
+ * Remet une position éditée à la main dans un état cohérent : droits de roque
+ * gardés seulement si le roi et la tour sont encore sur leurs cases, plus de prise en passant.
+ */
+export function sanitize(state) {
+  const b = state.board;
+  const rights = { K: b[60] === "K" && b[63] === "R", Q: b[60] === "K" && b[56] === "R", k: b[4] === "k" && b[7] === "r", q: b[4] === "k" && b[0] === "r" };
+  const castling = [...(state.castling || "")].filter((c) => rights[c]).join("");
+  return { ...state, castling, ep: null };
+}

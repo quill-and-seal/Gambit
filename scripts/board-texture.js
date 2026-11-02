@@ -9,6 +9,7 @@
 import { BOARD_PX, COLORS, GLYPHS, warn } from "./constants.js";
 import { gameOf, stateOf } from "./game.js";
 import { fileOf, rowOf, inCheck, kingSquare } from "./chess.js";
+import { textures } from "./textures.js";
 
 /** Plateaux dessinés : id de tuile → { canvas, texture, signature }. */
 const boards = new Map();
@@ -21,25 +22,39 @@ const TEXT_VS = "︎";
 
 /**
  * Dessine une position dans un contexte 2D carré de `size` px.
- * Le cadre porte les coordonnées ; les Blancs sont toujours en bas sur la scène.
+ * Cadre en pierre verte avec un filet rouge, cases ivoire et vertes, pièces en bois.
+ * Les Blancs sont toujours en bas sur la scène.
  */
 export function drawBoard(ctx, gameData, size = BOARD_PX) {
   const state = stateOf(gameData);
   const frame = Math.round(size * 0.05);
   const cell = (size - 2 * frame) / 8;
+  const tex = textures();
+  const pattern = (canvas) => ctx.createPattern(canvas, "repeat");
 
   ctx.clearRect(0, 0, size, size);
-  ctx.fillStyle = COLORS.frame;
-  roundRect(ctx, 0, 0, size, size, frame * 0.6);
-  ctx.fill();
 
+  // Cadre : pierre verte, bord assombri
+  ctx.save();
+  roundRect(ctx, 0, 0, size, size, frame * 0.5);
+  ctx.clip();
+  ctx.fillStyle = pattern(tex.stone);
+  ctx.fillRect(0, 0, size, size);
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.lineWidth = frame * 0.25;
+  roundRect(ctx, 0, 0, size, size, frame * 0.5);
+  ctx.stroke();
+  ctx.restore();
+
+  // Cases
+  const light = pattern(tex.ivory);
+  const dark = pattern(tex.stone);
   const last = gameData.moves?.at(-1);
   const checked = inCheck(state) ? kingSquare(state.board, state.turn) : -1;
-
   for (let sq = 0; sq < 64; sq++) {
     const x = frame + fileOf(sq) * cell;
     const y = frame + rowOf(sq) * cell;
-    ctx.fillStyle = (fileOf(sq) + rowOf(sq)) % 2 ? COLORS.dark : COLORS.light;
+    ctx.fillStyle = (fileOf(sq) + rowOf(sq)) % 2 ? dark : light;
     ctx.fillRect(x, y, cell + 0.5, cell + 0.5);
     if (last && (sq === last.from || sq === last.to)) {
       ctx.fillStyle = COLORS.lastMove;
@@ -54,18 +69,26 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
     }
   }
 
+  // Filet rouge autour des cases
+  ctx.strokeStyle = COLORS.inlay;
+  ctx.lineWidth = Math.max(2, size * 0.006);
+  const inset = ctx.lineWidth * 1.6;
+  ctx.strokeRect(frame - inset, frame - inset, cell * 8 + 2 * inset, cell * 8 + 2 * inset);
+
   // Coordonnées dans le cadre
-  ctx.fillStyle = "rgba(255, 240, 215, 0.85)";
-  ctx.font = `600 ${Math.round(frame * 0.6)}px sans-serif`;
+  ctx.fillStyle = "rgba(240, 232, 205, 0.85)";
+  ctx.font = `600 ${Math.round(frame * 0.5)}px sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   for (let i = 0; i < 8; i++) {
     const c = frame + (i + 0.5) * cell;
-    ctx.fillText("abcdefgh"[i], c, size - frame / 2);
-    ctx.fillText(String(8 - i), frame / 2, c);
+    ctx.fillText("abcdefgh"[i], c, size - frame * 0.42);
+    ctx.fillText(String(8 - i), frame * 0.42, c);
   }
 
-  // Pièces
+  // Pièces : bois clair et bois foncé, contour et ombre portée
+  const woodLight = pattern(tex.woodLight);
+  const woodDark = pattern(tex.woodDark);
   ctx.font = `${Math.round(cell * 0.8)}px ${PIECE_FONT}`;
   ctx.lineJoin = "round";
   for (let sq = 0; sq < 64; sq++) {
@@ -80,10 +103,17 @@ export function drawBoard(ctx, gameData, size = BOARD_PX) {
     const bottom = metrics.actualBoundingBoxDescent ?? cell * 0.05;
     const cy = frame + (rowOf(sq) + 0.5) * cell + (top - bottom) / 2;
     ctx.textBaseline = "alphabetic";
-    ctx.lineWidth = Math.max(2, cell * (white ? 0.07 : 0.05));
-    ctx.strokeStyle = white ? "#2b2118" : "rgba(255, 244, 225, 0.9)";
+
+    ctx.save();
+    ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+    ctx.shadowBlur = cell * 0.08;
+    ctx.shadowOffsetY = cell * 0.04;
+    ctx.lineWidth = Math.max(2, cell * 0.06);
+    ctx.strokeStyle = white ? "#3b2412" : "#d9b47a";
     ctx.strokeText(glyph, cx, cy);
-    ctx.fillStyle = white ? "#fffaf0" : "#1e1915";
+    ctx.restore();
+
+    ctx.fillStyle = white ? woodLight : woodDark;
     ctx.fillText(glyph, cx, cy);
   }
 }

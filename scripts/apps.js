@@ -7,7 +7,7 @@
 
 import { MODULE_ID, GLYPHS, LANGUAGES, gambitLang, t, esc } from "./constants.js";
 import { gameOf, findTile, sceneGames, stateOf, seatsOf, canMove, sideName, resultText, request, createGame } from "./game.js";
-import { fileOf, rowOf, squareName, legalMoves, inCheck, kingSquare, gameStatus } from "./chess.js";
+import { fileOf, rowOf, squareName, legalMoves, inCheck, kingSquare, gameStatus, toFen, sanitize } from "./chess.js";
 
 const { ApplicationV2, DialogV2 } = foundry.applications.api;
 
@@ -111,6 +111,10 @@ export class GambitApp extends BaseApp {
     this.flipped = null;
     /** Partie affichée, pour remettre la sélection à zéro quand elle change. */
     this._seen = null;
+    /** Mode libre du MJ : pièces déplacées sans les règles. */
+    this.editMode = false;
+    /** Pièce à poser (mode libre), lettre FEN ou null. */
+    this.placing = null;
   }
 
   static DEFAULT_OPTIONS = {
@@ -127,7 +131,11 @@ export class GambitApp extends BaseApp {
       acceptDraw: GambitApp.#onAcceptDraw,
       declineDraw: GambitApp.#onDeclineDraw,
       rematch: GambitApp.#onRematch,
-      undo: GambitApp.#onUndo
+      undo: GambitApp.#onUndo,
+      toggleEdit: GambitApp.#onToggleEdit,
+      pickPiece: GambitApp.#onPickPiece,
+      deletePiece: GambitApp.#onDeletePiece,
+      switchTurn: GambitApp.#onSwitchTurn
     }
   };
 
@@ -168,7 +176,8 @@ export class GambitApp extends BaseApp {
     if (!data) return `<p class="hint">${esc(t("Game.Missing"))}</p>`;
     this._seen = `${data.id}|${data.moves.length}`;
     const state = stateOf(data);
-    const mine = canMove(data);
+    const editing = this.editing;
+    const mine = !editing && canMove(data);
     const legal = mine ? legalMoves(state) : [];
     const targets = this.selected === null ? [] : legal.filter((m) => m.from === this.selected).map((m) => m.to);
     const movable = new Set(legal.map((m) => m.from));
@@ -186,12 +195,12 @@ export class GambitApp extends BaseApp {
       if (last && (sq === last.from || sq === last.to)) classes.push("last");
       if (sq === checked) classes.push("check");
       if (targets.includes(sq)) classes.push(piece ? "target capture" : "target");
-      if (movable.has(sq)) classes.push("movable");
+      if (movable.has(sq) || (editing && piece)) classes.push("movable");
       const col = i % 8;
       const row = Math.floor(i / 8);
       const fileLabel = row === 7 ? `<span class="coord file">${squareName(sq)[0]}</span>` : "";
       const rankLabel = col === 0 ? `<span class="coord rank">${squareName(sq)[1]}</span>` : "";
-      return `<button type="button" class="${classes.join(" ")}" data-action="square" data-sq="${sq}" aria-label="${squareName(sq)}">
+      return `<button type="button" class="${classes.join(" ")}" style="--c:${col};--r:${row}" data-action="square" data-sq="${sq}" aria-label="${squareName(sq)}">
         ${fileLabel}${rankLabel}${piece ? pieceHTML(piece) : ""}
       </button>`;
     }).join("");
@@ -205,16 +214,41 @@ export class GambitApp extends BaseApp {
         <div class="gambit-board-col">
           ${this._playerHTML(data, state, top)}
           <div class="gambit-board-wrap">
-            <div class="gambit-board ${mine ? "playable" : ""}">${squares}</div>
+            <div class="gambit-board ${mine || editing ? "playable" : ""} ${editing ? "editing" : ""} ${this.placing ? "placing" : ""}">${squares}</div>
             ${promotion}
           </div>
           ${this._playerHTML(data, state, bottom)}
+          ${editing ? this._editHTML(state) : ""}
         </div>
         <aside class="gambit-side">
           ${this._statusHTML(data, state)}
           ${this._movesHTML(data)}
           ${this._buttonsHTML(data, state)}
         </aside>
+      </div>`;
+  }
+
+  /** Mode libre actif (MJ uniquement). */
+  get editing() {
+    return this.editMode && game.user.isGM;
+  }
+
+  /** Outils du mode libre : palette de pièces, retirer, changer le trait. */
+  _editHTML(state) {
+    const palette = [..."KQRBNPkqrbnp"].map((p) => {
+      const active = this.placing === p ? "active" : "";
+      return `<button type="button" class="${active}" data-action="pickPiece" data-piece="${p}" data-tooltip="${esc(t("Edit.Add"))}">${pieceHTML(p)}</button>`;
+    }).join("");
+    const selectedPiece = this.selected !== null && state.board[this.selected];
+    const next = state.turn === "w" ? "b" : "w";
+    return `
+      <div class="gambit-edit">
+        <p class="hint">${esc(t("Edit.Hint"))}</p>
+        <div class="gambit-palette">${palette}</div>
+        <div class="gambit-edit-buttons">
+          ${selectedPiece ? `<button type="button" data-action="deletePiece"><i class="fa-solid fa-trash"></i> ${esc(t("Edit.Delete"))}</button>` : ""}
+          <button type="button" data-action="switchTurn"><i class="fa-solid fa-right-left"></i> ${esc(t("Edit.SwitchTurn", { side: t(`Side.${next}`) }))}</button>
+        </div>
       </div>`;
   }
 
@@ -238,20 +272,35 @@ export class GambitApp extends BaseApp {
     const yourTurn = canMove(data) ? t("Game.YourTurn") : t("Game.Turn", { name });
     let offer = "";
     if (data.drawOffer) offer = `<div class="gambit-offer">${esc(t("Game.DrawOffered", { name: sideName(data, data.drawOffer) }))}</div>`;
-    return `<div class="gambit-status">${esc(yourTurn)}${check}</div>${offer}`;
+    const badge = this.editing ? `<div class="gambit-edit-badge"><i class="fa-solid fa-hand"></i> ${esc(t("Edit.Badge"))}</div>` : "";
+    return `${badge}<div class="gambit-status">${esc(yourTurn)}${check}</div>${offer}`;
   }
 
   _movesHTML(data) {
     if (!data.moves.length) return `<ol class="gambit-moves empty"><li class="hint">${esc(t("Game.NoMoves"))}</li></ol>`;
     const rows = [];
-    for (let i = 0; i < data.moves.length; i += 2) {
-      const w = data.moves[i]?.san ?? "";
-      const b = data.moves[i + 1]?.san ?? "";
-      const lastW = i === data.moves.length - 1 ? " last" : "";
-      const lastB = i + 1 === data.moves.length - 1 ? " last" : "";
-      rows.push(`<li><span class="num">${i / 2 + 1}.</span><span class="san${lastW}">${esc(w)}</span><span class="san${lastB}">${esc(b)}</span></li>`);
-    }
-    return `<ol class="gambit-moves">${rows.join("")}</ol>`;
+    let open = null;
+    data.moves.forEach((m, i) => {
+      const last = i === data.moves.length - 1 ? " last" : "";
+      // Retouche du MJ : une ligne à part
+      if (m.edit) {
+        rows.push(`<li class="edit${last}">${editLabel(m)}</li>`);
+        open = null;
+        return;
+      }
+      const color = m.color ?? (i % 2 ? "b" : "w");
+      const num = Number(String(m.fenBefore ?? "").split(" ")[5]) || Math.floor(i / 2) + 1;
+      const san = `<span class="san${last}">${esc(m.san)}</span>`;
+      if (color === "w") {
+        open = { num, w: san, b: "<span></span>" };
+        rows.push(open);
+      } else if (open) {
+        open.b = san;
+        open = null;
+      } else rows.push({ num, w: `<span class="san">…</span>`, b: san });
+    });
+    const html = rows.map((r) => (typeof r === "string" ? r : `<li><span class="num">${r.num}.</span>${r.w}${r.b}</li>`)).join("");
+    return `<ol class="gambit-moves">${html}</ol>`;
   }
 
   _buttonsHTML(data, state) {
@@ -276,6 +325,9 @@ export class GambitApp extends BaseApp {
       buttons.push(btn("rematch", "fa-rotate", t("Game.Rematch")));
     }
     if (game.user.isGM && data.moves.length) buttons.push(btn("undo", "fa-rotate-left", t("Game.Undo")));
+    if (game.user.isGM) {
+      buttons.push(btn("toggleEdit", "fa-hand", t(this.editMode ? "Edit.Off" : "Edit.On"), this.editMode ? 'class="active"' : ""));
+    }
     buttons.push(btn("flip", "fa-arrows-up-down", t("Game.Flip")));
     return `<div class="gambit-buttons">${buttons.join("")}</div>`;
   }
@@ -302,13 +354,24 @@ export class GambitApp extends BaseApp {
     super._onRender(context, options);
     const board = this.element.querySelector(".gambit-board.playable");
     if (board) board.addEventListener("pointerdown", (event) => this.#onPointerDown(event));
+    // Mode libre : clic droit sur une pièce pour la retirer
+    if (board && this.editing) {
+      board.addEventListener("contextmenu", (event) => {
+        const square = event.target.closest(".gambit-sq");
+        if (!square) return;
+        event.preventDefault();
+        const sq = Number(square.dataset.sq);
+        const piece = stateOf(this.data).board[sq];
+        if (piece) this.#edit({ type: "remove", from: sq, piece });
+      });
+    }
     // La liste des coups suit le dernier coup
     const moves = this.element.querySelector(".gambit-moves");
     if (moves) moves.scrollTop = moves.scrollHeight;
   }
 
   #onPointerDown(event) {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || this.placing) return;
     const square = event.target.closest(".gambit-sq.movable");
     const piece = square?.querySelector(".gambit-piece");
     if (!square || !piece) return;
@@ -346,6 +409,14 @@ export class GambitApp extends BaseApp {
       setTimeout(() => (this._suppressClick = false), 0);
       const target = document.elementFromPoint(e.clientX, e.clientY)?.closest(".gambit-sq");
       const to = target && this.element.contains(target) ? Number(target.dataset.sq) : null;
+      if (this.editing) {
+        const piece = stateOf(this.data).board[from];
+        const outside = !this.element.querySelector(".gambit-board")?.contains(document.elementFromPoint(e.clientX, e.clientY));
+        // Glisser hors du plateau : la pièce est retirée
+        if (to === null && outside) return this.#edit({ type: "remove", from, piece });
+        if (to === null || to === from) return this.render();
+        return this.#edit({ type: "move", from, to, piece });
+      }
       if (to === null || to === from) {
         this.render();
         return;
@@ -358,7 +429,7 @@ export class GambitApp extends BaseApp {
 
   /** Montre les cases d'arrivée sans redessiner (pendant un glisser). */
   #markTargets(from) {
-    const legal = legalMoves(stateOf(this.data)).filter((m) => m.from === from);
+    const legal = this.editing ? [] : legalMoves(stateOf(this.data)).filter((m) => m.from === from);
     for (const el of this.element.querySelectorAll(".gambit-sq")) {
       const sq = Number(el.dataset.sq);
       el.classList.toggle("selected", sq === from);
@@ -384,6 +455,29 @@ export class GambitApp extends BaseApp {
     this.#send(from, to);
   }
 
+  /**
+   * Retouche du MJ : la nouvelle position est calculée ici et envoyée telle quelle.
+   * change : { type: move | remove | place | turn, from, to, piece }
+   */
+  #edit(change) {
+    const state = stateOf(this.data);
+    const board = state.board.slice();
+    let turn = state.turn;
+    if (change.type === "move") {
+      board[change.to] = board[change.from];
+      board[change.from] = null;
+    } else if (change.type === "remove") board[change.from] = null;
+    else if (change.type === "place") board[change.to] = change.piece;
+    else if (change.type === "turn") {
+      turn = turn === "w" ? "b" : "w";
+      change.piece = turn;
+    }
+    const fen = toFen(sanitize({ ...state, board, turn }));
+    this.selected = null;
+    request(this.tile, "edit", { fen, change });
+    this.render();
+  }
+
   #send(from, to, promotion = null) {
     // Le MJ vérifie et enregistre le coup ; la fenêtre se redessine à la mise à jour de la tuile
     this.pendingPromotion = null;
@@ -401,6 +495,7 @@ export class GambitApp extends BaseApp {
       return;
     }
     const data = this.data;
+    if (this.editing) return this.#onEditSquare(Number(target.dataset.sq));
     if (!canMove(data)) return;
     const sq = Number(target.dataset.sq);
     const state = stateOf(data);
@@ -413,6 +508,42 @@ export class GambitApp extends BaseApp {
     }
     this.selected = own && this.selected !== sq ? sq : null;
     this.render();
+  }
+
+  /** Clic sur une case en mode libre : poser, déplacer ou sélectionner. */
+  #onEditSquare(sq) {
+    const board = stateOf(this.data).board;
+    if (this.placing) return this.#edit({ type: "place", to: sq, piece: this.placing });
+    if (this.selected !== null && this.selected !== sq) {
+      return this.#edit({ type: "move", from: this.selected, to: sq, piece: board[this.selected] });
+    }
+    this.selected = board[sq] && this.selected !== sq ? sq : null;
+    this.render();
+  }
+
+  static #onToggleEdit() {
+    this.editMode = !this.editMode;
+    this.selected = null;
+    this.placing = null;
+    this.pendingPromotion = null;
+    this.render();
+  }
+
+  static #onPickPiece(event, target) {
+    const piece = target.dataset.piece;
+    this.placing = this.placing === piece ? null : piece;
+    this.selected = null;
+    this.render();
+  }
+
+  static #onDeletePiece() {
+    if (this.selected === null) return;
+    const piece = stateOf(this.data).board[this.selected];
+    if (piece) this.#edit({ type: "remove", from: this.selected, piece });
+  }
+
+  static #onSwitchTurn() {
+    this.#edit({ type: "turn" });
   }
 
   static #onPromote(event, target) {
@@ -463,6 +594,20 @@ export class GambitApp extends BaseApp {
   static #onUndo() {
     request(this.tile, "undo");
   }
+}
+
+/** Libellé d'une retouche du MJ dans la liste des coups. */
+function editLabel(m) {
+  const sq = (i) => (Number.isInteger(i) ? squareName(i) : "?");
+  const piece = m.piece && m.edit !== "turn" ? pieceHTML(m.piece) : "";
+  let text;
+  switch (m.edit) {
+    case "remove": text = `${esc(t("Edit.Log.Remove"))} ${piece} ${sq(m.from)}`; break;
+    case "place": text = `${esc(t("Edit.Log.Place"))} ${piece} ${sq(m.to)}`; break;
+    case "turn": text = esc(t("Edit.Log.Turn", { side: t(`Side.${m.piece === "b" ? "b" : "w"}`) })); break;
+    default: text = `${piece} ${sq(m.from)} → ${sq(m.to)}`;
+  }
+  return `<i class="fa-solid fa-hand"></i> ${text}`;
 }
 
 /** Pièce en HTML (glyphe Unicode, couleur par le style). */

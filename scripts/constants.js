@@ -21,9 +21,7 @@ export const GLYPHS = Object.freeze({ k: "♚", q: "♛", r: "♜", b: "♝", n:
 
 /** Couleurs du plateau, partagées par la fenêtre et la scène. */
 export const COLORS = Object.freeze({
-  light: "#ecd9b4",
-  dark: "#a9794e",
-  frame: "#4a3222",
+  inlay: "#b3262a",
   lastMove: "rgba(222, 186, 64, 0.55)",
   check: "rgba(200, 40, 40, 0.75)"
 });

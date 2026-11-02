@@ -12,6 +12,7 @@ import { gameOf, sceneGames, seatsOf, createGame, request, onSocket, findTile } 
 import { refreshBoard, releaseBoard, releaseAll, refreshAll } from "./board-texture.js";
 import { openGame, openGames, newGameDialog, refreshApps, rerenderAll } from "./apps.js";
 import * as chess from "./chess.js";
+import { installCssTextures } from "./textures.js";
 
 /* -------------------------------------------- */
 /*  Initialisation                              */
@@ -56,6 +57,8 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
   game.socket.on(SOCKET, (message, senderId) => onSocket(message, senderId));
+  // Textures du plateau et des pièces pour les fenêtres (générées une fois)
+  installCssTextures();
 
   game.modules.get(MODULE_ID).api = {
     /** Crée une partie (MJ) : { white, black, whiteName, blackName, size, x, y }. */

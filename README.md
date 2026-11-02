@@ -36,6 +36,7 @@ Pour ouvrir une partie ensuite :
 - Le plateau est tourné du côté de ton camp ; **Retourner le plateau** pour l'inverser.
 - **Proposer la nulle**, **Abandonner**, et à la fin **Revanche** (les couleurs s'inversent, sur le même plateau).
 - Le **MJ** peut **annuler le dernier coup**.
+- **Mode libre (MJ)** : le bouton *Mode libre* laisse le MJ déplacer n'importe quelle pièce n'importe où sans les règles, en retirer (clic droit, ou glisser hors du plateau), en ajouter depuis une palette et changer le trait. Chaque retouche est notée dans la liste des coups.
 - Les spectateurs ouvrent la même fenêtre en lecture seule.
 
 Les coups passent par le **MJ connecté**, qui les vérifie avant de les enregistrer : sans MJ en ligne, on ne peut pas jouer.

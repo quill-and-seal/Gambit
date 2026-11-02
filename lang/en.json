@@ -96,6 +96,24 @@
       "GMOnly": "Gambit: only the GM can do that.",
       "NoScene": "Gambit: no scene is being viewed.",
       "NoGM": "Gambit: no GM connected, the move cannot be recorded."
+    },
+    "Edit": {
+      "On": "Free mode (GM)",
+      "Off": "Leave free mode",
+      "Badge": "Free mode: rules are ignored",
+      "Hint": "Move any piece anywhere. Right-click a piece, or drag it off the board, to remove it. Pick a piece below, then click squares to add it.",
+      "Add": "Add this piece (then click a square)",
+      "Delete": "Remove piece",
+      "SwitchTurn": "Give the move to {side}",
+      "Log": {
+        "Remove": "removed:",
+        "Place": "added:",
+        "Turn": "{side} to move"
+      }
+    },
+    "Side": {
+      "w": "White",
+      "b": "Black"
     }
   }
 }

@@ -1,5 +1,14 @@
 # Journal des versions
 
+## 0.1.2
+
+Nouveau plateau et mode libre du MJ.
+
+- **Nouveau plateau** : cadre et cases en pierre verte veinée, cases ivoire, filet rouge autour du damier, sur la scène comme dans la fenêtre
+- **Pièces en bois** : bois clair pour les Blancs, bois foncé pour les Noirs
+- **Mode libre (MJ)** : bouton *Mode libre* dans la fenêtre de partie. Le MJ déplace n'importe quelle pièce n'importe où, sans les règles ; **clic droit** sur une pièce (ou la glisser hors du plateau) pour la **retirer** ; une palette pour **ajouter** des pièces ; **changer le trait**. Chaque retouche apparaît dans la liste des coups et s'annule avec *Annuler le coup*
+- *Annuler le coup* remet exactement la position précédente (coups normaux comme retouches)
+
 ## 0.1.1
 
 - **Double-clic partout** : un double-clic sur le plateau ouvre la partie, aussi en mode Tuiles. Pour configurer la tuile, **Alt + double-clic**

@@ -96,6 +96,24 @@
       "GMOnly": "Gambit : seul le MJ peut faire ça.",
       "NoScene": "Gambit : aucune scène affichée.",
       "NoGM": "Gambit : aucun MJ connecté, le coup ne peut pas être enregistré."
+    },
+    "Edit": {
+      "On": "Mode libre (MJ)",
+      "Off": "Quitter le mode libre",
+      "Badge": "Mode libre : les règles sont ignorées",
+      "Hint": "Déplace n'importe quelle pièce n'importe où. Clic droit sur une pièce, ou glisse-la hors du plateau, pour la retirer. Choisis une pièce ci-dessous puis clique sur des cases pour en ajouter.",
+      "Add": "Ajouter cette pièce (clique ensuite sur une case)",
+      "Delete": "Retirer la pièce",
+      "SwitchTurn": "Donner le trait aux {side}",
+      "Log": {
+        "Remove": "retirée :",
+        "Place": "ajoutée :",
+        "Turn": "trait aux {side}"
+      }
+    },
+    "Side": {
+      "w": "Blancs",
+      "b": "Noirs"
     }
   }
 }
